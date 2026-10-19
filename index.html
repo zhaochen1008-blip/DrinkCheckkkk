@@ -22,6 +22,7 @@ h2{color:#222;font-size:28px;text-align:center;margin-bottom:6px;}
 }
 .state-drank{background:#e74c3c;color:#fff;}
 .state-notdrank{background:#27ae60;color:#fff;}
+.state-delete{background:#888;color:#fff;}
 
 /* 统计行 */
 .stat-row{display:flex;gap:12px;margin-bottom:16px;}
@@ -95,10 +96,11 @@ h2{color:#222;font-size:28px;text-align:center;margin-bottom:6px;}
     <div class="continue-text" id="continueInfo">还没有打卡记录</div>
     <div class="best-record" id="bestRecord">历史最高戒断天数：0 天</div>
 
-    <!-- 第一步：选择喝了 / 没喝 -->
+    <!-- 第一步：选择喝了 / 没喝 / 删除 -->
     <div class="choose-drink-state">
         <button class="state-btn state-drank" onclick="setDrinkState(1)">🍻 今儿喝了</button>
         <button class="state-btn state-notdrank" onclick="setDrinkState(0)">✅ 今儿没喝</button>
+        <button class="state-btn state-delete" onclick="deleteCurrentRecord()">🗑 删除记录</button>
     </div>
 
     <!-- 本月统计 -->
@@ -121,7 +123,7 @@ h2{color:#222;font-size:28px;text-align:center;margin-bottom:6px;}
     </div>
     <div class="calendar-grid" id="calendar"></div>
 
-    <p class="bottom-tip">💡 提示：仅可选择今天或过去日期补打卡；数据保存在本机浏览器，不会上传</p >
+    <p class="bottom-tip">💡 提示：仅可选择今天或过去日期打卡；选中日期后可新增/修改/删除打卡记录，数据保存在本机浏览器</p >
 </div>
 
 <!-- 多选弹窗 -->
@@ -203,6 +205,25 @@ window.onload = function(){
     renderBestRecord();
 }
 
+// 删除当前选中日期的打卡记录
+function deleteCurrentRecord(){
+    if(!selectDate){
+        alert("请先在日历选中日期");
+        return;
+    }
+    if(!records[selectDate]){
+        alert("该日期暂无打卡记录");
+        return;
+    }
+    if(confirm(`确定删除【${selectDate}】的打卡记录吗？`)){
+        delete records[selectDate];
+        saveRecords();
+        renderCalendar();
+        calcContinueDays();
+        alert("已删除");
+    }
+}
+
 // 选择【喝了/没喝】
 function setDrinkState(state){
     currentPickState = state;
@@ -258,7 +279,7 @@ function pickDay(y,m,d){
         return;
     }
     selectDate = formatDate(y,m,d);
-    alert(`选中【${selectDate}】，请选择今儿喝了/没喝完成补打卡`);
+    alert(`选中【${selectDate}】，请选择今儿喝了/没喝完成补打卡，已有记录可删除`);
     renderCalendar();
 }
 
