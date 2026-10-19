@@ -39,12 +39,13 @@ h2{color:#222;font-size:28px;text-align:center;margin-bottom:6px;}
 .green{background:#27ae60;color:#fff;}
 .red{background:#e74c3c;color:#fff;}
 .empty{background:#f3f3f3;color:#aaa;}
+.future{background:#f3f3f3;color:#bbbbbb;cursor:not-allowed;}
 /* 选中要补打卡的日期高亮 */
 .active-day{outline:2px solid #3498db;outline-offset:2px;}
 
 .bottom-tip{color:#666;font-size:13px;margin-top:20px;text-align:center;line-height:1.5;}
 
-/* ========== 超大多选弹窗【新增】 ========== */
+/* ========== 超大多选弹窗 ========== */
 .modal-mask{
   position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);
   display:none;align-items:center;justify-content:center;padding:12px;z-index:999
@@ -120,10 +121,10 @@ h2{color:#222;font-size:28px;text-align:center;margin-bottom:6px;}
     </div>
     <div class="calendar-grid" id="calendar"></div>
 
-    <p class="bottom-tip">💡 提示：点击日历任意日期可补打卡；数据保存在本机浏览器，不会上传</p >
+    <p class="bottom-tip">💡 提示：仅可选择今天或过去日期补打卡；数据保存在本机浏览器，不会上传</p >
 </div>
 
-<!-- 多选弹窗【新增】 -->
+<!-- 多选弹窗 -->
 <div class="modal-mask" id="modal">
   <div class="modal-box">
     <div class="modal-title">选择今天喝的酒（可多选）</div>
@@ -132,7 +133,6 @@ h2{color:#222;font-size:28px;text-align:center;margin-bottom:6px;}
       <label class="check-item"><input type="checkbox" value="啤酒"> 啤酒</label>
       <label class="check-item"><input type="checkbox" value="红酒"> 红酒</label>
       <label class="check-item"><input type="checkbox" value="洋酒"> 洋酒</label>
-      <label class="check-item"><input type="checkbox" value="三中全会"> 三中全会</label>
       <label class="check-item"><input type="checkbox" value="黄酒"> 黄酒</label>
       <label class="check-item"><input type="checkbox" value="清酒"> 清酒</label>
       <label class="check-item"><input type="checkbox" value="果酒"> 果酒</label>
@@ -170,6 +170,27 @@ const tauntList = [
     "不喝酒，人生还有什么乐趣？",
     "再坚持看看，看你能撑几天。"
 ];
+
+// 统一格式化日期函数，固定 yyyy-MM-dd
+function formatDate(y,m,d){
+    const mm = String(m+1).padStart(2,"0");
+    const dd = String(d).padStart(2,"0");
+    return `${y}-${mm}-${dd}`;
+}
+
+// 获取今天日期字符串
+function getTodayStr(){
+    const d = new Date();
+    return formatDate(d.getFullYear(),d.getMonth(),d.getDate());
+}
+
+// 判断日期是否为未来日期
+function isFutureDate(y,m,d){
+    const target = new Date(y, m, d);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    return target > today;
+}
 
 window.onload = function(){
     selectDate = getTodayStr();
@@ -230,17 +251,17 @@ modal.addEventListener('click', e=>{
   if(e.target === modal) modal.style.display='none';
 })
 
-// 点击日历日期，切换为补打卡日期
+// 点击日历日期，切换为补打卡日期，未来日期直接拦截
 function pickDay(y,m,d){
-    selectDate = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    if(isFutureDate(y,m,d)){
+        alert("不能打卡未来的日期！");
+        return;
+    }
+    selectDate = formatDate(y,m,d);
     alert(`选中【${selectDate}】，请选择今儿喝了/没喝完成补打卡`);
     renderCalendar();
 }
 
-function getTodayStr(){
-    const d = new Date();
-    return d.toISOString().slice(0,10);
-}
 function saveRecords(){
     localStorage.setItem(storageKeyRecord, JSON.stringify(records));
 }
@@ -256,7 +277,7 @@ function calcContinueDays(){
     for(let i = 0; i < 1000; i++){
         const checkDate = new Date(now);
         checkDate.setDate(now.getDate() - i);
-        const dateStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth()+1).padStart(2,'0')}-${String(checkDate.getDate()).padStart(2,'0')}`;
+        const dateStr = formatDate(checkDate.getFullYear(), checkDate.getMonth(), checkDate.getDate());
         if(!records.hasOwnProperty(dateStr)) break;
         const status = records[dateStr].status;
         if(lastStatus === null){
@@ -318,25 +339,31 @@ function renderCalendar(){
     }
     let drinkCnt=0,noDrinkCnt=0;
     for(let d=1;d<=totalDays;d++){
-        const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dateStr = formatDate(y,m,d);
         let cls = "c-day";
         let tipText = "";
-        if(records[dateStr]){
-            if(records[dateStr].status===1){
-                cls += " red";
-                drinkCnt++;
-                tipText = records[dateStr].type;
-            }else if(records[dateStr].status===0){
-                cls += " green";
-                noDrinkCnt++;
-                tipText = "未饮酒";
+        // 判断是否是未来日期
+        if(isFutureDate(y,m,d)){
+            cls += " future";
+            html += `<div class="${cls}">${d}</div>`;
+        }else{
+            if(records[dateStr]){
+                if(records[dateStr].status===1){
+                    cls += " red";
+                    drinkCnt++;
+                    tipText = records[dateStr].type;
+                }else if(records[dateStr].status===0){
+                    cls += " green";
+                    noDrinkCnt++;
+                    tipText = "未饮酒";
+                }
             }
+            // 严格对比日期
+            if(dateStr === selectDate){
+                cls += " active-day";
+            }
+            html += `<div class="${cls}" title="${tipText}" onclick="pickDay(${y},${m},${d})">${d}</div>`;
         }
-        // 选中补打卡日期高亮
-        if(dateStr === selectDate){
-            cls += " active-day";
-        }
-        html += `<div class="${cls}" title="${tipText}" onclick="pickDay(${y},${m},${d})">${d}</div>`;
     }
     document.getElementById("calendar").innerHTML = html;
     document.getElementById("drinkCount").innerText = drinkCnt;
