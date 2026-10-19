@@ -3,27 +3,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>今儿您喝了吗？</title>
+<title>喝了么</title>
 <link rel="manifest" href="./manifest.json">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}
-body{background:#f8f9fa;padding:16px;color:#222}
-.container{max-width:600px;margin:0 auto}
-h1{text-align:center;margin:20px 0 30px;font-size:28px;color:#1f7549}
-.card{background:#fff;border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 4px 16px #00000015}
-.btn{width:100%;padding:18px;border:none;border-radius:16px;background:#27ae60;color:#fff;font-size:20px;font-weight:bold;margin-top:12px}
-.btn:active{opacity:0.85}
-.record-item{padding:14px;border-bottom:1px solid #eee}
-.record-item:last-child{border-bottom:none}
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+body{background:#f0f6fc;padding:16px;display:flex;justify-content:center;}
+.wrap{background:#ffffff;border-radius:24px;width:100%;max-width:700px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,0.08);}
+h2{color:#222;font-size:28px;text-align:center;margin-bottom:6px;}
+.subtitle{color:#777;font-size:15px;text-align:center;margin-bottom:20px;}
+.continue-text{font-size:22px;font-weight:bold;margin:8px 0;text-align:center;color:#444;}
+.best-record{font-size:17px;color:#27ae60;text-align:center;margin-bottom:20px;}
+/* 打卡选项区域 */
+.choose-drink-state{
+  display:flex;gap:12px;margin-bottom:16px;
+}
+.state-btn{
+  flex:1;padding:14px;border-radius:12px;border:none;font-size:17px;font-weight:bold;cursor:pointer;
+}
+.state-drank{background:#e74c3c;color:#fff;}
+.state-notdrank{background:#27ae60;color:#fff;}
 
-/* ========== 超大弹窗样式【疯一点，占满大部分屏幕】 ========== */
+/* 统计行 */
+.stat-row{display:flex;gap:12px;margin-bottom:16px;}
+.stat-item{flex:1;text-align:center;padding:10px 4px;border-radius:12px;background:#f7f8fa;}
+.stat-label{font-size:13px;color:#555;margin-bottom:6px;}
+.stat-num{font-size:24px;font-weight:bold;}
+
+/* 日历 */
+.calendar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.calendar-btn{padding:4px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;font-size:15px;cursor:pointer;}
+.calendar-title{font-size:18px;color:#333;}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.c-day{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:14px;background:#eee;cursor:pointer;}
+.c-day:hover{opacity:0.85;}
+.green{background:#27ae60;color:#fff;}
+.red{background:#e74c3c;color:#fff;}
+.empty{background:#f3f3f3;color:#aaa;}
+/* 选中要补打卡的日期高亮 */
+.active-day{outline:2px solid #3498db;outline-offset:2px;}
+
+.bottom-tip{color:#666;font-size:13px;margin-top:20px;text-align:center;line-height:1.5;}
+
+/* ========== 超大多选弹窗【新增】 ========== */
 .modal-mask{
   position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);
   display:none;align-items:center;justify-content:center;padding:12px;z-index:999
 }
 .modal-box{
   background:#fff;border-radius:24px;
-  width:96%;height:88vh; /* 高度直接拉到屏幕88%，超大弹窗 */
+  width:96%;height:88vh;
   max-width:700px;
   padding:28px;
   display:flex;flex-direction:column;
@@ -45,32 +73,68 @@ h1{text-align:center;margin:20px 0 30px;font-size:28px;color:#1f7549}
 .modal-footer{display:flex;gap:14px;margin-top:20px}
 .modal-footer button{flex:1;padding:16px;border-radius:14px;border:none;font-size:19px;font-weight:bold}
 .btn-cancel{background:#ddd;color:#222}
-.btn-confirm{background:#27ae60;color:#fff}
+.btn-confirm{background:#e74c3c;color:#fff}
+
+/* 手机适配 */
+@media (max-width:480px) {
+    body{padding:8px;}
+    .wrap{padding:16px;}
+    h2{font-size:24px;}
+    .continue-text{font-size:20px;}
+    .choose-drink-state{gap:8px;}
+    .state-btn{padding:12px;font-size:16px;}
+}
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>🍻 今儿您喝了吗？</h1>
-  <div class="card">
-    <button class="btn" id="openModalBtn">添加今日饮酒记录</button>
-  </div>
-  <div class="card">
-    <h2 style="margin-bottom:16px;font-size:22px">历史记录</h2>
-    <div id="recordList"></div>
-  </div>
+<div class="wrap">
+    <h2>喝了么</h2>
+    <div class="subtitle">众人皆醉唯我断片</div>
+
+    <div class="continue-text" id="continueInfo">还没有打卡记录</div>
+    <div class="best-record" id="bestRecord">历史最高戒断天数：0 天</div>
+
+    <!-- 第一步：选择喝了 / 没喝 -->
+    <div class="choose-drink-state">
+        <button class="state-btn state-drank" onclick="setDrinkState(1)">🍻 今儿喝了</button>
+        <button class="state-btn state-notdrank" onclick="setDrinkState(0)">✅ 今儿没喝</button>
+    </div>
+
+    <!-- 本月统计 -->
+    <div class="stat-row">
+        <div class="stat-item">
+            <div class="stat-label">本月喝酒</div>
+            <div class="stat-num" id="drinkCount">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num" id="noDrinkCount">0</div>
+            <div class="stat-label">本月未喝酒</div>
+        </div>
+    </div>
+
+    <!-- 日历区域，点击日期补打卡 -->
+    <div class="calendar-header">
+        <button class="calendar-btn" onclick="prevMonth()">◀</button>
+        <div class="calendar-title" id="calTitle"></div>
+        <button class="calendar-btn" onclick="nextMonth()">▶</button>
+    </div>
+    <div class="calendar-grid" id="calendar"></div>
+
+    <p class="bottom-tip">💡 提示：点击日历任意日期可补打卡；数据保存在本机浏览器，不会上传</p >
 </div>
 
-<!-- 多选弹窗 -->
+<!-- 多选弹窗【新增】 -->
 <div class="modal-mask" id="modal">
   <div class="modal-box">
     <div class="modal-title">选择今天喝的酒（可多选）</div>
     <div class="modal-body">
       <label class="check-item"><input type="checkbox" value="白酒"> 白酒</label>
-      <label class="check-item"><input type="checkbox" value="红酒"> 红酒</label>
       <label class="check-item"><input type="checkbox" value="啤酒"> 啤酒</label>
+      <label class="check-item"><input type="checkbox" value="红酒"> 红酒</label>
+      <label class="check-item"><input type="checkbox" value="洋酒"> 洋酒</label>
+      <label class="check-item"><input type="checkbox" value="三中全会"> 三中全会</label>
       <label class="check-item"><input type="checkbox" value="黄酒"> 黄酒</label>
       <label class="check-item"><input type="checkbox" value="清酒"> 清酒</label>
-      <label class="check-item"><input type="checkbox" value="洋酒"> 洋酒</label>
       <label class="check-item"><input type="checkbox" value="果酒"> 果酒</label>
       <label class="check-item"><input type="checkbox" value="其他"> 其他</label>
     </div>
@@ -82,68 +146,202 @@ h1{text-align:center;margin:20px 0 30px;font-size:28px;color:#1f7549}
 </div>
 
 <script>
+const storageKeyRecord = "drinkRecords";
+const storageBestRecord = "bestQuitDay";
+let records = {};
+let bestQuitDays = 0;
+let viewYear = new Date().getFullYear();
+let viewMonth = new Date().getMonth();
+let selectDate = ""; // 当前选中的打卡日期（默认今天，点日历可切换）
+let currentPickState = null; // 0=没喝，1=喝了
+
+// 弹窗DOM
 const modal = document.getElementById('modal');
-const openModalBtn = document.getElementById('openModalBtn');
 const modalCancel = document.getElementById('modalCancel');
 const modalConfirm = document.getElementById('modalConfirm');
-const recordList = document.getElementById('recordList');
 
-// 读取本地存储
-function getRecords(){
-  const raw = localStorage.getItem('drinkRecords');
-  return raw ? JSON.parse(raw) : [];
-}
-function saveRecords(list){
-  localStorage.setItem('drinkRecords', JSON.stringify(list));
-}
-function renderList(){
-  const arr = getRecords();
-  recordList.innerHTML = '';
-  if(arr.length === 0){
-    recordList.innerHTML = '<div style="padding:10px;color:#777">暂无打卡记录</div>';
-    return;
-  }
-  arr.reverse().forEach(item=>{
-    const div = document.createElement('div');
-    div.className='record-item';
-    div.innerHTML = `<div style="font-weight:bold">${item.date}</div><div>饮品：${item.drinks.join('、')}</div>`;
-    recordList.appendChild(div);
-  })
+// 吐槽文案
+const tauntList = [
+    "不喝不难受吗？",
+    "就这？一口都不碰？",
+    "别人都在喝，你确定扛得住？",
+    "今晚饭局，真能忍住？",
+    "少喝一点没事吧，这么较真？",
+    "不喝酒，人生还有什么乐趣？",
+    "再坚持看看，看你能撑几天。"
+];
+
+window.onload = function(){
+    selectDate = getTodayStr();
+    const recStr = localStorage.getItem(storageKeyRecord);
+    if(recStr) records = JSON.parse(recStr);
+    const savedBest = localStorage.getItem(storageBestRecord);
+    if(savedBest) bestQuitDays = parseInt(savedBest);
+    renderCalendar();
+    calcContinueDays();
+    renderBestRecord();
 }
 
-// 打开弹窗
-openModalBtn.onclick = ()=>{
-  // 清空所有勾选
-  document.querySelectorAll('.modal-body input').forEach(cb=>cb.checked=false);
-  modal.style.display='flex';
-}
-//关闭弹窗
-modalCancel.onclick = ()=> modal.style.display='none';
-modal.querySelector('.modal-mask').onclick = e=>{
-  if(e.target === modal) modal.style.display='none';
+// 选择【喝了/没喝】
+function setDrinkState(state){
+    currentPickState = state;
+    if(state === 1){
+        // 喝了：打开多选弹窗，清空勾选
+        document.querySelectorAll('.modal-body input').forEach(cb=>cb.checked=false);
+        modal.style.display = "flex";
+    }else{
+        // 没喝，直接保存
+        saveCheckIn(state, "无");
+    }
 }
 
-//确认保存
+// 保存打卡记录（支持今天+过往补打卡）
+function saveCheckIn(state, drinkTypeVal){
+    records[selectDate] = {status:state, type:drinkTypeVal};
+    saveRecords();
+    renderCalendar();
+    calcContinueDays();
+
+    if(state === 1){
+        alert("每天在不喝和少喝之间，选择不少喝");
+    }else{
+        const randomTxt = tauntList[Math.floor(Math.random() * tauntList.length)];
+        alert(randomTxt);
+    }
+}
+
+//弹窗确认
 modalConfirm.onclick = ()=>{
   const selected = [];
   document.querySelectorAll('.modal-body input:checked').forEach(cb=>{
     selected.push(cb.value);
   })
   if(selected.length ===0){
-    alert('至少选一项！');
+    alert('至少选一项酒！');
     return;
   }
-  const today = new Date();
-  const dateStr = `${today.getFullYear()}-${today.getMonth()+1}-${today.getDate()}`;
-  const records = getRecords();
-  records.push({date:dateStr, drinks:selected});
-  saveRecords(records);
-  renderList();
+  //多个酒用顿号拼接存入type
+  saveCheckIn(1, selected.join("、"));
   modal.style.display='none';
-  alert("✅ 打卡保存成功！");
+}
+//关闭弹窗
+modalCancel.onclick = ()=> modal.style.display='none';
+modal.addEventListener('click', e=>{
+  if(e.target === modal) modal.style.display='none';
+})
+
+// 点击日历日期，切换为补打卡日期
+function pickDay(y,m,d){
+    selectDate = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    alert(`选中【${selectDate}】，请选择今儿喝了/没喝完成补打卡`);
+    renderCalendar();
 }
 
-renderList();
+function getTodayStr(){
+    const d = new Date();
+    return d.toISOString().slice(0,10);
+}
+function saveRecords(){
+    localStorage.setItem(storageKeyRecord, JSON.stringify(records));
+}
+function renderBestRecord(){
+    document.getElementById("bestRecord").innerText = `历史最高戒断天数：${bestQuitDays} 天`;
+}
+
+// 计算连续天数
+function calcContinueDays(){
+    let continueDay = 0;
+    let lastStatus = null;
+    const now = new Date();
+    for(let i = 0; i < 1000; i++){
+        const checkDate = new Date(now);
+        checkDate.setDate(now.getDate() - i);
+        const dateStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth()+1).padStart(2,'0')}-${String(checkDate.getDate()).padStart(2,'0')}`;
+        if(!records.hasOwnProperty(dateStr)) break;
+        const status = records[dateStr].status;
+        if(lastStatus === null){
+            lastStatus = status;
+            continueDay = 1;
+        }else if(status === lastStatus){
+            continueDay++;
+        }else{
+            break;
+        }
+    }
+    const el = document.getElementById("continueInfo");
+    if(lastStatus === 1){
+        el.innerText = `您已连续喝酒${continueDay}天`;
+        el.style.color="#e74c3c";
+    }else if(lastStatus === 0){
+        el.innerText = `您已连续${continueDay}天没喝酒`;
+        el.style.color="#27ae60";
+        if(continueDay > bestQuitDays){
+            bestQuitDays = continueDay;
+            localStorage.setItem(storageBestRecord,bestQuitDays);
+            renderBestRecord();
+        }
+    }else{
+        el.innerText = "还没有打卡记录";
+        el.style.color="#444";
+    }
+}
+
+function prevMonth(){
+    viewMonth--;
+    if(viewMonth < 0){
+        viewMonth = 11;
+        viewYear--;
+    }
+    renderCalendar();
+}
+function nextMonth(){
+    viewMonth++;
+    if(viewMonth > 11){
+        viewMonth = 0;
+        viewYear++;
+    }
+    renderCalendar();
+}
+
+// 渲染日历，增加点击事件，补打卡
+function renderCalendar(){
+    const y = viewYear;
+    const m = viewMonth;
+    document.getElementById("calTitle").innerText = `${y}年${m+1}月`;
+    const firstDay = new Date(y,m,1);
+    const lastDay = new Date(y,m+1,0);
+    const totalDays = lastDay.getDate();
+    let html = "";
+    const weekStart = firstDay.getDay();
+    for(let i=0;i<weekStart;i++){
+        html += `<div class="c-day empty"></div>`;
+    }
+    let drinkCnt=0,noDrinkCnt=0;
+    for(let d=1;d<=totalDays;d++){
+        const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        let cls = "c-day";
+        let tipText = "";
+        if(records[dateStr]){
+            if(records[dateStr].status===1){
+                cls += " red";
+                drinkCnt++;
+                tipText = records[dateStr].type;
+            }else if(records[dateStr].status===0){
+                cls += " green";
+                noDrinkCnt++;
+                tipText = "未饮酒";
+            }
+        }
+        // 选中补打卡日期高亮
+        if(dateStr === selectDate){
+            cls += " active-day";
+        }
+        html += `<div class="${cls}" title="${tipText}" onclick="pickDay(${y},${m},${d})">${d}</div>`;
+    }
+    document.getElementById("calendar").innerHTML = html;
+    document.getElementById("drinkCount").innerText = drinkCnt;
+    document.getElementById("noDrinkCount").innerText = noDrinkCnt;
+}
 </script>
 </body>
 </html>
