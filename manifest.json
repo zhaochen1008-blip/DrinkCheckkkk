@@ -1,6 +1,6 @@
 {
   "name": "今儿您喝了吗？",
-  "short_name": "饮酒打卡",
+  "short_name": "喝了么",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
