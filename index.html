@@ -356,4 +356,30 @@ document.getElementById("modalOk").addEventListener('click', ()=>{
   }
   records[selectedDate] = {type:"drink",wine:arr};
   save();
-  document
+  document.getElementById("mask").style.display="none";
+  renderCalendar();
+  alert(getRandom(drinkWords));
+})
+
+document.getElementById("prevMonth").addEventListener('click', ()=>{
+  currentYM.setMonth(currentYM.getMonth()-1);
+  renderCalendar();
+})
+
+document.getElementById("nextMonth").addEventListener('click', ()=>{
+  const now = new Date();
+  const cy = currentYM.getFullYear();
+  const cm = currentYM.getMonth();
+  // 如果当前展示年月已经等于真实年月，禁止向后
+  if (cy === now.getFullYear() && cm === now.getMonth()) {
+    return;
+  }
+  currentYM.setMonth(currentYM.getMonth() + 1);
+  renderCalendar();
+})
+
+// 初始化
+renderCalendar();
+</script>
+</body>
+</html>
