@@ -270,8 +270,6 @@ function renderCalendar(){
   const first = new Date(y,m,1);
   const last = new Date(y,m+1,0);
   const today = new Date();
-  const todayY = today.getFullYear();
-  const todayM = today.getMonth();
   const todayStr = getTodayStr();
   const firstWeek = first.getDay();
 
@@ -355,4 +353,30 @@ document.getElementById("modalOk").addEventListener('click', ()=>{
   }
   records[selectedDate] = {type:"drink",wine:arr};
   save();
-  document.getElementById("mask").style.
+  document.getElementById("mask").style.display="none";
+  renderCalendar();
+  alert(getRandom(drinkWords));
+})
+
+document.getElementById("prevMonth").addEventListener('click', ()=>{
+  currentYM.setMonth(currentYM.getMonth()-1);
+  renderCalendar();
+})
+// 修复下月判断
+document.getElementById("nextMonth").addEventListener('click', ()=>{
+  const now = new Date();
+  const nextMonth = new Date(currentYM);
+  nextMonth.setMonth(nextMonth.getMonth() + 1);
+  // 只禁止跳到比当前月份更靠后的月份
+  if(nextMonth.getFullYear() > now.getFullYear() || (nextMonth.getFullYear() === now.getFullYear() && nextMonth.getMonth() > now.getMonth())){
+    return;
+  }
+  currentYM = nextMonth;
+  renderCalendar();
+})
+
+// 初始化
+renderCalendar();
+</script>
+</body>
+</html>
