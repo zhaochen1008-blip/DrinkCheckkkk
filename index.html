@@ -2,394 +2,357 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>喝了么</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#fdf7f2">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="./manifest.json">
+<title>喝了么</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
-body{background:#f0f6fc;padding:16px;display:flex;justify-content:center;}
-.wrap{background:#ffffff;border-radius:24px;width:100%;max-width:700px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,0.08);}
-h2{color:#222;font-size:28px;text-align:center;margin-bottom:6px;}
-.subtitle{color:#777;font-size:15px;text-align:center;margin-bottom:20px;}
-.continue-text{font-size:22px;font-weight:bold;margin:8px 0;text-align:center;color:#444;}
-.best-record{font-size:17px;color:#27ae60;text-align:center;margin-bottom:20px;}
-/* 打卡选项区域 */
-.choose-drink-state{
-  display:flex;gap:12px;margin-bottom:16px;
-}
-.state-btn{
-  flex:1;padding:14px;border-radius:12px;border:none;font-size:17px;font-weight:bold;cursor:pointer;
-}
-.state-drank{background:#e74c3c;color:#fff;}
-.state-notdrank{background:#27ae60;color:#fff;}
-.state-delete{background:#888;color:#fff;}
+  :root{
+    --green:#46c98a; --green-bg:#e3f9ed; --green-text:#0e7a45;
+    --red:#ff8a8a;   --red-bg:#ffecec;   --red-text:#b02a2a;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+  body{
+    background:#fdf7f2;
+    padding: calc(12px + var(--safe-top)) 12px calc(12px + var(--safe-bottom));
+  }
+  .container{
+    max-width:720px;
+    margin:0 auto;
+  }
+  h1{
+    text-align:center;
+    font-size:22px;
+    color:#333;
+    margin-bottom:16px;
+  }
+  .stat-box{
+    background:#fff;
+    border-radius:20px;
+    padding:16px;
+    margin-bottom:16px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.06);
+  }
+  .stat-item{
+    text-align:center;
+    padding:8px 0;
+  }
+  .stat-label{
+    font-size:14px;color:#777;
+  }
+  .stat-num{
+    font-size:26px;font-weight:bold;color:#333;
+  }
+  .btn-group{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:center;
+    margin:16px 0 24px;
+  }
+  .btn-group>.btn{
+    flex:1;
+    min-width:102px;
+    padding:14px 6px;
+    font-size:16px;
+    border:none;
+    border-radius:20px;
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+  }
+  .drink-btn{background-color:#ff4444;}
+  .no-drink-btn{background-color:#28b968;}
+  .del-btn{background-color:#777777;}
 
-/* 统计行 */
-.stat-row{display:flex;gap:12px;margin-bottom:16px;}
-.stat-item{flex:1;text-align:center;padding:10px 4px;border-radius:12px;background:#f7f8fa;}
-.stat-label{font-size:13px;color:#555;margin-bottom:6px;}
-.stat-num{font-size:24px;font-weight:bold;}
+  .calendar-wrap{
+    background:#fff;
+    border-radius:20px;
+    padding:16px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.06);
+  }
+  .calendar-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+  }
+  .calendar-head button{
+    border:none;background:#eee;border-radius:12px;padding:6px 12px;font-size:14px;
+  }
+  .week-row{
+    display:grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap:6px;
+    margin-bottom:6px;
+  }
+  .week-item{text-align:center;font-size:13px;color:#888;padding:4px;}
+  .day-row{
+    display:grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap:6px;
+  }
+  .day-cell{
+    aspect-ratio:1/1;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:12px;font-size:15px;
+    border:1px solid #eee;
+    cursor:pointer;
+  }
+  .day-cell.empty{border:none;cursor:default;}
+  .day-cell.drink{background:var(--red-bg);color:var(--red-text);border-color:var(--red);}
+  .day-cell.nodrink{background:var(--green-bg);color:var(--green-text);border-color:var(--green);}
+  .day-cell.future{opacity:0.3;pointer-events:none;cursor:not-allowed;}
+  .day-cell.today{box-shadow:0 0 0 2px #333;}
+  .day-cell.selected{outline:2px solid #4285f4;}
 
-/* 日历 */
-.calendar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.calendar-btn{padding:4px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;font-size:15px;cursor:pointer;}
-.calendar-title{font-size:18px;color:#333;}
-.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
-.c-day{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:14px;background:#eee;cursor:pointer;}
-.c-day:hover{opacity:0.85;}
-.green{background:#27ae60;color:#fff;}
-.red{background:#e74c3c;color:#fff;}
-.empty{background:#f3f3f3;color:#aaa;}
-.future{background:#f3f3f3;color:#bbbbbb;cursor:not-allowed;}
-/* 选中要补打卡的日期高亮 */
-.active-day{outline:2px solid #3498db;outline-offset:2px;}
-
-.bottom-tip{color:#666;font-size:13px;margin-top:20px;text-align:center;line-height:1.5;}
-
-/* ========== 超大多选弹窗 ========== */
-.modal-mask{
-  position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);
-  display:none;align-items:center;justify-content:center;padding:12px;z-index:999
-}
-.modal-box{
-  background:#fff;border-radius:24px;
-  width:96%;height:88vh;
-  max-width:700px;
-  padding:28px;
-  display:flex;flex-direction:column;
-  overflow:hidden
-}
-.modal-title{font-size:24px;font-weight:bold;margin-bottom:20px;text-align:center}
-.modal-body{
-  flex:1;overflow-y:auto;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:18px;
-  padding:8px 0
-}
-.check-item{
-  display:flex;align-items:center;gap:10px;font-size:20px;
-  padding:14px;border:2px solid #e9e9e9;border-radius:14px
-}
-.check-item input{width:24px;height:24px}
-.modal-footer{display:flex;gap:14px;margin-top:20px}
-.modal-footer button{flex:1;padding:16px;border-radius:14px;border:none;font-size:19px;font-weight:bold}
-.btn-cancel{background:#ddd;color:#222}
-.btn-confirm{background:#e74c3c;color:#fff}
-
-/* 手机适配 */
-@media (max-width:480px) {
-    body{padding:8px;}
-    .wrap{padding:16px;}
-    h2{font-size:24px;}
-    .continue-text{font-size:20px;}
-    .choose-drink-state{gap:8px;}
-    .state-btn{padding:12px;font-size:16px;}
-}
+  /* 多选弹窗 */
+  .mask{
+    position:fixed;inset:0;background:rgba(0,0,0,0.5);
+    display:none;align-items:center;justify-content:center;
+    padding:20px;z-index:99;
+  }
+  .modal{
+    background:#fff;border-radius:24px;padding:24px;width:100%;max-width:420px;
+  }
+  .modal h3{margin-bottom:16px;text-align:center;}
+  .check-list{
+    display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;
+  }
+  .check-item{
+    display:flex;align-items:center;gap:6px;font-size:16px;
+  }
+  .modal-btns{
+    display:flex;gap:10px;
+  }
+  .modal-btns button{
+    flex:1;padding:12px;border:none;border-radius:14px;font-size:16px;
+  }
+  .confirm{background:#28b968;color:#fff;}
+  .cancel{background:#eee;color:#333;}
 </style>
 </head>
 <body>
-<div class="wrap">
-    <h2>喝了么</h2>
-    <div class="subtitle">众人皆醉唯我断片</div>
-
-    <div class="continue-text" id="continueInfo">还没有打卡记录</div>
-    <div class="best-record" id="bestRecord">历史最高戒断天数：0 天</div>
-
-    <!-- 第一步：选择喝了 / 没喝 / 删除 -->
-    <div class="choose-drink-state">
-        <button class="state-btn state-drank" onclick="setDrinkState(1)">🍻 今儿喝了</button>
-        <button class="state-btn state-notdrank" onclick="setDrinkState(0)">✅ 今儿没喝</button>
-        <button class="state-btn state-delete" onclick="deleteCurrentRecord()">🗑 删除记录</button>
+<div class="container">
+  <h1>喝了么</h1>
+  <div class="stat-box">
+    <div class="stat-item">
+      <div class="stat-label">当前连续记录</div>
+      <div class="stat-num" id="continueText">加载中</div>
     </div>
-
-    <!-- 本月统计 -->
-    <div class="stat-row">
-        <div class="stat-item">
-            <div class="stat-label">本月喝酒</div>
-            <div class="stat-num" id="drinkCount">0</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-num" id="noDrinkCount">0</div>
-            <div class="stat-label">本月未喝酒</div>
-        </div>
+    <div class="stat-item">
+      <div class="stat-label">历史最高戒断</div>
+      <div class="stat-num" id="maxClean">0 天</div>
     </div>
+  </div>
 
-    <!-- 日历区域，点击日期补打卡 -->
-    <div class="calendar-header">
-        <button class="calendar-btn" onclick="prevMonth()">◀</button>
-        <div class="calendar-title" id="calTitle"></div>
-        <button class="calendar-btn" onclick="nextMonth()">▶</button>
+  <div class="btn-group">
+    <button class="btn drink-btn" id="btnDrink">
+      <span>🍻</span>
+      <span>又整一口</span>
+    </button>
+    <button class="btn no-drink-btn" id="btnNoDrink">
+      <span>✅</span>
+      <span>顶住诱惑</span>
+    </button>
+    <button class="btn del-btn" id="btnDel">
+      <span>🗑️</span>
+      <span>抹除罪证</span>
+    </button>
+  </div>
+
+  <div class="calendar-wrap">
+    <div class="calendar-head">
+      <button id="prevMonth">←上月</button>
+      <div id="monthTitle"></div>
+      <button id="nextMonth">下月→</button>
     </div>
-    <div class="calendar-grid" id="calendar"></div>
-
-    <p class="bottom-tip">💡 提示：仅可选择今天或过去日期打卡；选中日期后可新增/修改/删除打卡记录，数据保存在本机浏览器</p >
+    <div class="week-row">
+      <div class="week-item">日</div>
+      <div class="week-item">一</div>
+      <div class="week-item">二</div>
+      <div class="week-item">三</div>
+      <div class="week-item">四</div>
+      <div class="week-item">五</div>
+      <div class="week-item">六</div>
+    </div>
+    <div id="calendarBody"></div>
+  </div>
 </div>
 
-<!-- 多选弹窗 -->
-<div class="modal-mask" id="modal">
-  <div class="modal-box">
-    <div class="modal-title">选择今天喝的酒（可多选）</div>
-    <div class="modal-body">
-      <label class="check-item"><input type="checkbox" value="白酒"> 白酒</label>
-      <label class="check-item"><input type="checkbox" value="啤酒"> 啤酒</label>
-      <label class="check-item"><input type="checkbox" value="红酒"> 红酒</label>
-      <label class="check-item"><input type="checkbox" value="洋酒"> 洋酒</label>
-      <label class="check-item"><input type="checkbox" value="黄酒"> 黄酒</label>
-      <label class="check-item"><input type="checkbox" value="清酒"> 清酒</label>
-      <label class="check-item"><input type="checkbox" value="果酒"> 果酒</label>
-      <label class="check-item"><input type="checkbox" value="其他"> 其他</label>
+<!-- 酒品多选弹窗 -->
+<div class="mask" id="mask">
+  <div class="modal">
+    <h3>今天整了啥？</h3>
+    <div class="check-list">
+      <label class="check-item"><input type="checkbox" value="白酒">白酒</label>
+      <label class="check-item"><input type="checkbox" value="啤酒">啤酒</label>
+      <label class="check-item"><input type="checkbox" value="红酒">红酒</label>
+      <label class="check-item"><input type="checkbox" value="洋酒">洋酒</label>
     </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" id="modalCancel">取消</button>
-      <button class="btn-confirm" id="modalConfirm">确认保存</button>
+    <div class="modal-btns">
+      <button class="cancel" id="modalCancel">取消</button>
+      <button class="confirm" id="modalOk">确认打卡</button>
     </div>
   </div>
 </div>
 
 <script>
-const storageKeyRecord = "drinkRecords";
-const storageBestRecord = "bestQuitDay";
-let records = {};
-let bestQuitDays = 0;
-let viewYear = new Date().getFullYear();
-let viewMonth = new Date().getMonth();
-let selectDate = ""; // 当前选中的打卡日期（默认今天，点日历可切换）
-let currentPickState = null; // 0=没喝，1=喝了
+const STORAGE_KEY = "drink_record_v1";
+let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+let currentYM = new Date();
+let selectedDate = "";
 
-// 弹窗DOM
-const modal = document.getElementById('modal');
-const modalCancel = document.getElementById('modalCancel');
-const modalConfirm = document.getElementById('modalConfirm');
-
-// 吐槽文案
-const tauntList = [
-    "不喝不难受吗？",
-    "就这？一口都不碰？",
-    "别人都在喝，你确定扛得住？",
-    "今晚饭局，真能忍住？",
-    "少喝一点没事吧，这么较真？",
-    "不喝酒，人生还有什么乐趣？",
-    "再坚持看看，看你能撑几天。"
+// 阴阳文案池
+const noDrinkWords = [
+  "不喝不难受吗？",
+  "哟，今天忍住了？",
+  "别人都在喝，你搁这自律呢？",
+  "真能扛啊，一点不动心？",
+  "今日装清醒任务完成✅",
+  "克制这一下，是为下次更好开喝",
+  "忍一时，酒局还在后头"
 ];
-
-// 统一格式化日期函数，固定 yyyy-MM-dd
-function formatDate(y,m,d){
-    const mm = String(m+1).padStart(2,"0");
-    const dd = String(d).padStart(2,"0");
-    return `${y}-${mm}-${dd}`;
+const drinkWords = [
+  "每天在不喝和少喝之间，选择不少喝",
+  "道理都懂，酒还是要喝的",
+  "说好浅酌，怎么又上手了",
+  "抵抗失败，投降给酒精",
+  "没事，就喝一点点（骗谁呢）",
+  "自控力下线，酒精上线",
+  "计划戒酒，计划失败"
+];
+function getRandom(arr){
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// 获取今天日期字符串
-function getTodayStr(){
-    const d = new Date();
-    return formatDate(d.getFullYear(),d.getMonth(),d.getDate());
-}
-
-// 判断日期是否为未来日期
-function isFutureDate(y,m,d){
-    const target = new Date(y, m, d);
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    return target > today;
-}
-
-window.onload = function(){
-    selectDate = getTodayStr();
-    const recStr = localStorage.getItem(storageKeyRecord);
-    if(recStr) records = JSON.parse(recStr);
-    const savedBest = localStorage.getItem(storageBestRecord);
-    if(savedBest) bestQuitDays = parseInt(savedBest);
-    renderCalendar();
-    calcContinueDays();
-    renderBestRecord();
-}
-
-// 删除当前选中日期的打卡记录
-function deleteCurrentRecord(){
-    if(!selectDate){
-        alert("请先在日历选中日期");
-        return;
-    }
-    if(!records[selectDate]){
-        alert("该日期暂无打卡记录");
-        return;
-    }
-    if(confirm(`确定删除【${selectDate}】的打卡记录吗？`)){
-        delete records[selectDate];
-        saveRecords();
-        renderCalendar();
-        calcContinueDays();
-        alert("已删除");
-    }
-}
-
-// 选择【喝了/没喝】
-function setDrinkState(state){
-    currentPickState = state;
-    if(state === 1){
-        // 喝了：打开多选弹窗，清空勾选
-        document.querySelectorAll('.modal-body input').forEach(cb=>cb.checked=false);
-        modal.style.display = "flex";
+// 统计
+function calcStat(){
+  const days = Object.keys(records).sort();
+  let maxClean = 0;
+  let nowClean = 0;
+  let nowDrink = 0;
+  let cleanRun = 0;
+  for(let d of days){
+    if(records[d].type === "nodrink"){
+      cleanRun++;
+      nowClean = cleanRun;
+      maxClean = Math.max(maxClean, cleanRun);
+      nowDrink = 0;
     }else{
-        // 没喝，直接保存
-        saveCheckIn(state, "无");
+      cleanRun = 0;
+      nowDrink++;
+      nowClean = 0;
     }
+  }
+  if(nowClean>0){
+    document.getElementById("continueText").innerText = `已顶住诱惑 ${nowClean} 天`;
+  }else if(nowDrink>0){
+    document.getElementById("continueText").innerText = `又整一口 ${nowDrink} 天`;
+  }else{
+    document.getElementById("continueText").innerText = "暂无记录";
+  }
+  document.getElementById("maxClean").innerText = maxClean + " 天";
 }
 
-// 保存打卡记录（支持今天+过往补打卡）
-function saveCheckIn(state, drinkTypeVal){
-    records[selectDate] = {status:state, type:drinkTypeVal};
-    saveRecords();
-    renderCalendar();
-    calcContinueDays();
+// 渲染日历
+function renderCalendar(){
+  const y = currentYM.getFullYear();
+  const m = currentYM.getMonth();
+  document.getElementById("monthTitle").innerText = `${y}年${m+1}月`;
+  const body = document.getElementById("calendarBody");
+  body.innerHTML = "";
+  const first = new Date(y,m,1);
+  const last = new Date(y,m+1,0);
+  const today = new Date();
+  const todayY = today.getFullYear();
+  const todayM = today.getMonth();
+  const todayStr = getTodayStr();
+  const firstWeek = first.getDay();
 
-    if(state === 1){
-        alert("每天在不喝和少喝之间，选择不少喝");
-    }else{
-        const randomTxt = tauntList[Math.floor(Math.random() * tauntList.length)];
-        alert(randomTxt);
+  let html = "";
+  let row = `<div class="day-row">`;
+  for(let i=0;i<firstWeek;i++) row += `<div class="day-cell empty"></div>`;
+  for(let d=1;d<=last.getDate();d++){
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isFuture = new Date(ds) > today;
+    let cls = "day-cell";
+    if(isFuture) cls += " future";
+    if(ds === todayStr) cls += " today";
+    if(ds === selectedDate) cls += " selected";
+    if(records[ds]){
+      cls += " " + records[ds].type;
     }
-}
+    row += `<div class="${cls}" data-date="${ds}">${d}</div>`;
+    if((firstWeek + d) %7 ===0){
+      row += `</div>`;
+      html += row;
+      row = `<div class="day-row">`;
+    }
+  }
+  if(row !== `<div class="day-row">`) html += row + `</div>`;
+  body.innerHTML = html;
 
-//弹窗确认
-modalConfirm.onclick = ()=>{
-  const selected = [];
-  document.querySelectorAll('.modal-body input:checked').forEach(cb=>{
-    selected.push(cb.value);
+  // 日期点击绑定
+  document.querySelectorAll(".day-cell:not(.empty):not(.future)").forEach(el=>{
+    el.addEventListener('click', ()=>{
+      document.querySelectorAll(".day-cell").forEach(cel=>cel.classList.remove("selected"))
+      el.classList.add("selected");
+      selectedDate = el.dataset.date;
+    })
   })
-  if(selected.length ===0){
-    alert('至少选一项酒！');
+  calcStat();
+}
+
+// 保存函数
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+}
+function getTodayStr(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// 绑定按钮事件
+document.getElementById("btnDrink").addEventListener('click', ()=>{
+  if(!selectedDate) selectedDate = getTodayStr();
+  document.getElementById("mask").style.display="flex";
+  document.querySelectorAll(".check-list input").forEach(cb=>cb.checked=false);
+})
+document.getElementById("btnNoDrink").addEventListener('click', ()=>{
+  if(!selectedDate) selectedDate = getTodayStr();
+  records[selectedDate] = {type:"nodrink",wine:[]};
+  save();
+  renderCalendar();
+  alert(getRandom(noDrinkWords));
+})
+document.getElementById("btnDel").addEventListener('click', ()=>{
+  if(!selectedDate) {
+    alert("先点日历选中一天！");
     return;
   }
-  //多个酒用顿号拼接存入type
-  saveCheckIn(1, selected.join("、"));
-  modal.style.display='none';
-}
-//关闭弹窗
-modalCancel.onclick = ()=> modal.style.display='none';
-modal.addEventListener('click', e=>{
-  if(e.target === modal) modal.style.display='none';
+  if(!confirm(`确定抹除【${selectedDate}】的罪证吗？`)) return;
+  delete records[selectedDate];
+  selectedDate = "";
+  save();
+  renderCalendar();
 })
 
-// 点击日历日期，切换为补打卡日期，未来日期直接拦截
-function pickDay(y,m,d){
-    if(isFutureDate(y,m,d)){
-        alert("不能打卡未来的日期！");
-        return;
-    }
-    selectDate = formatDate(y,m,d);
-    alert(`选中【${selectDate}】，请选择今儿喝了/没喝完成补打卡，已有记录可删除`);
-    renderCalendar();
-}
-
-function saveRecords(){
-    localStorage.setItem(storageKeyRecord, JSON.stringify(records));
-}
-function renderBestRecord(){
-    document.getElementById("bestRecord").innerText = `历史最高戒断天数：${bestQuitDays} 天`;
-}
-
-// 计算连续天数
-function calcContinueDays(){
-    let continueDay = 0;
-    let lastStatus = null;
-    const now = new Date();
-    for(let i = 0; i < 1000; i++){
-        const checkDate = new Date(now);
-        checkDate.setDate(now.getDate() - i);
-        const dateStr = formatDate(checkDate.getFullYear(), checkDate.getMonth(), checkDate.getDate());
-        if(!records.hasOwnProperty(dateStr)) break;
-        const status = records[dateStr].status;
-        if(lastStatus === null){
-            lastStatus = status;
-            continueDay = 1;
-        }else if(status === lastStatus){
-            continueDay++;
-        }else{
-            break;
-        }
-    }
-    const el = document.getElementById("continueInfo");
-    if(lastStatus === 1){
-        el.innerText = `您已连续喝酒${continueDay}天`;
-        el.style.color="#e74c3c";
-    }else if(lastStatus === 0){
-        el.innerText = `您已连续${continueDay}天没喝酒`;
-        el.style.color="#27ae60";
-        if(continueDay > bestQuitDays){
-            bestQuitDays = continueDay;
-            localStorage.setItem(storageBestRecord,bestQuitDays);
-            renderBestRecord();
-        }
-    }else{
-        el.innerText = "还没有打卡记录";
-        el.style.color="#444";
-    }
-}
-
-function prevMonth(){
-    viewMonth--;
-    if(viewMonth < 0){
-        viewMonth = 11;
-        viewYear--;
-    }
-    renderCalendar();
-}
-function nextMonth(){
-    viewMonth++;
-    if(viewMonth > 11){
-        viewMonth = 0;
-        viewYear++;
-    }
-    renderCalendar();
-}
-
-// 渲染日历，增加点击事件，补打卡
-function renderCalendar(){
-    const y = viewYear;
-    const m = viewMonth;
-    document.getElementById("calTitle").innerText = `${y}年${m+1}月`;
-    const firstDay = new Date(y,m,1);
-    const lastDay = new Date(y,m+1,0);
-    const totalDays = lastDay.getDate();
-    let html = "";
-    const weekStart = firstDay.getDay();
-    for(let i=0;i<weekStart;i++){
-        html += `<div class="c-day empty"></div>`;
-    }
-    let drinkCnt=0,noDrinkCnt=0;
-    for(let d=1;d<=totalDays;d++){
-        const dateStr = formatDate(y,m,d);
-        let cls = "c-day";
-        let tipText = "";
-        // 判断是否是未来日期
-        if(isFutureDate(y,m,d)){
-            cls += " future";
-            html += `<div class="${cls}">${d}</div>`;
-        }else{
-            if(records[dateStr]){
-                if(records[dateStr].status===1){
-                    cls += " red";
-                    drinkCnt++;
-                    tipText = records[dateStr].type;
-                }else if(records[dateStr].status===0){
-                    cls += " green";
-                    noDrinkCnt++;
-                    tipText = "未饮酒";
-                }
-            }
-            // 严格对比日期
-            if(dateStr === selectDate){
-                cls += " active-day";
-            }
-            html += `<div class="${cls}" title="${tipText}" onclick="pickDay(${y},${m},${d})">${d}</div>`;
-        }
-    }
-    document.getElementById("calendar").innerHTML = html;
-    document.getElementById("drinkCount").innerText = drinkCnt;
-    document.getElementById("noDrinkCount").innerText = noDrinkCnt;
-}
-</script>
-</body>
-</html>
+document.getElementById("modalCancel").addEventListener('click', ()=>{
+  document.getElementById("mask").style.display="none";
+})
+document.getElementById("modalOk").addEventListener('click', ()=>{
+  const arr = [];
+  document.querySelectorAll(".check-list input:checked").forEach(cb=>arr.push(cb.value));
+  if(arr.length === 0) {
+    alert("至少选一个酒品");
+    return;
+  }
+  records[selectedDate] = {type:"drink",wine:arr};
+  save();
+  document.getElementById("mask").style.
